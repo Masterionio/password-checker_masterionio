@@ -3,19 +3,17 @@ function updateStrengthMeter() {
     const meterFill = document.getElementById('meterFill');
     const strengthText = document.getElementById('strengthText');
 
-    
     const checkLower = document.getElementById('checkLower');
     const checkUpper = document.getElementById('checkUpper');
     const checkNum = document.getElementById('checkNum');
     const checkSym = document.getElementById('checkSym');
     const checkLen = document.getElementById('checkLen');
-    
+
     if (!password) {
         meterFill.style.width = "0%";
         strengthText.innerText = "Empty";
         strengthText.style.color = "#94a3b8";
-        
-        
+
         checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#94a3b8";
         checkUpper.innerHTML = "✗ Uppercase (A-Z)"; checkUpper.style.color = "#94a3b8";
         checkNum.innerHTML = "✗ Number (0-9)"; checkNum.style.color = "#94a3b8";
@@ -25,21 +23,19 @@ function updateStrengthMeter() {
     }
 
     let score = 0;
-    
-    
-    if (/[a-z]/.test(password)) { score++; checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; } 
+
+    if (/[a-z]/.test(password)) { score++; checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; }
     else { checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#94a3b8"; }
 
-    if (/[A-Z]/.test(password)) { score++; checkUpper.innerHTML = "✓ Uppercase (A-Z)"; checkUpper.style.color = "#4ade80"; } 
+    if (/[A-Z]/.test(password)) { score++; checkUpper.innerHTML = "✓ Uppercase (A-Z)"; checkUpper.style.color = "#4ade80"; }
     else { checkUpper.innerHTML = "✗ Uppercase (A-Z)"; checkUpper.style.color = "#94a3b8"; }
 
-    if (/[0-9]/.test(password)) { score++; checkNum.innerHTML = "✓ Number (0-9)"; checkNum.style.color = "#4ade80"; } 
+    if (/[0-9]/.test(password)) { score++; checkNum.innerHTML = "✓ Number (0-9)"; checkNum.style.color = "#4ade80"; }
     else { checkNum.innerHTML = "✗ Number (0-9)"; checkNum.style.color = "#94a3b8"; }
 
-    if (/[^A-Za-z0-9]/.test(password)) { score++; checkSym.innerHTML = "✓ Symbol (!@#$)"; checkSym.style.color = "#4ade80"; } 
+    if (/[^A-Za-z0-9]/.test(password)) { score++; checkSym.innerHTML = "✓ Symbol (!@#$)"; checkSym.style.color = "#4ade80"; }
     else { checkSym.innerHTML = "✗ Symbol (!@#$)"; checkSym.style.color = "#94a3b8"; }
 
-    
     if (password.length >= 8) score++;
     if (password.length >= 12) score++;
     if (password.length >= 16) score++;
@@ -49,14 +45,12 @@ function updateStrengthMeter() {
     if (password.length >= 32) score += 2;
     if (password.length >= 36) score += 2;
 
-    
-    if (password.length >= 16) { checkLen.innerHTML = "✓ Min Length (16+ chars)"; checkLen.style.color = "#4ade80"; } 
+    if (password.length >= 16) { checkLen.innerHTML = "✓ Min Length (16+ chars)"; checkLen.style.color = "#4ade80"; }
     else { checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#f87171"; }
 
-    
     const percentage = Math.min((score / 15) * 100, 100);
     meterFill.style.width = `${percentage}%`;
-    
+
     if (score <= 3) {
         strengthText.innerText = "Very Weak";
         meterFill.style.backgroundColor = "#ef4444";
@@ -95,12 +89,7 @@ async function sha1(text) {
 async function generateSecureKey() {
     const randomBytes = new Uint8Array(32);
     window.crypto.getRandomValues(randomBytes);
-
-    
-    const hashBuffer = await crypto.subtle.digest('SHA-512', randomBytes);
-    const raw256BitData = new Uint8Array(hashBuffer).slice(0, 32);
-
-    const base64String = btoa(String.fromCharCode(...raw256BitData));
+    const base64String = btoa(String.fromCharCode(...randomBytes));
     return base64String;
 }
 
