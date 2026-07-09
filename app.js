@@ -87,7 +87,7 @@ function updateStrengthMeter() {
         strengthText.innerText = "Weak";
         meterFill.style.backgroundColor = "#f97316";
         strengthText.style.color = "#f97316";
-    } else if (score <= 8) {
+    } else if (score <= 8.5) {
         strengthText.innerText = "Slightly Secure";
         meterFill.style.backgroundColor = "#eab308";
         strengthText.style.color = "#eab308";
@@ -134,8 +134,9 @@ async function evaluatePassword() {
     statusMessage.innerHTML = "Checking breach database...";
     generatorSection.style.display = "none";
 
-    let isSafe = password.length >= 16;
-    let localWarning = isSafe ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
+    let isLong = password.length >= 16;
+    let isSafe = password.length >= 16 && score >= 8.5;
+    let localWarning = isLong ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
 
     try {
         const fullHash = await sha1(password);
@@ -163,10 +164,10 @@ async function evaluatePassword() {
             isSafe = false;
         } else if (!isSafe) {
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure!</strong> Clear. No leaks found.</p>`;
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure!</strong> Not secure enough.</p>`;
         } else {
             resultBox.className = "result success";
-            statusMessage.innerHTML = "<p> <strong>Nice!</strong> Your password is safe and meets structural lengths!</p>";
+            statusMessage.innerHTML = "<p> <strong>Nice!</strong> Your password is secure and not detected in any breaches.</p>";
         }
 
         if (!isSafe) {
