@@ -1,5 +1,3 @@
-let score = 0;
-
 function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
@@ -11,6 +9,8 @@ function updateStrengthMeter() {
     const checkSym = document.getElementById('checkSym');
     const checkLen = document.getElementById('checkLen');
     const checkUnique = document.getElementById('checkUnique');
+
+    let score = 0;
 
     if (!password) {
         score = 0; 
@@ -163,7 +163,7 @@ async function evaluatePassword() {
         const prefix = fullHash.substring(0, 5);
         const suffix = fullHash.substring(5);
 
-        const response = await fetch(`https://api.pwnedpasswords.com${prefix}`);
+        const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
         if (!response.ok) throw new Error("API network error");
         const textData = await response.text();
 
