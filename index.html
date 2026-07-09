@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Password Shield</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 600px; margin: 40px auto; padding: 20px; }
+        .card { background: #1e293b; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #475569; box-sizing: border-box; font-size: 16px; }
+        input { background: #334155; color: white; }
+        button { background: #2563eb; color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 16px; }
+        button:hover { background: #1d4ed8; }
+        
+        /* Strength Meter CSS Styling */
+        .meter-container { margin-top: 12px; }
+        .meter-label { font-size: 14px; font-weight: bold; color: #94a3b8; display: flex; justify-content: space-between; }
+        .meter-bar-bg { background: #334155; height: 8px; width: 100%; border-radius: 4px; margin-top: 6px; overflow: hidden; }
+        .meter-bar-fill { height: 100%; width: 0%; background: #ef4444; transition: width 0.3s ease, background-color 0.3s ease; }
+        
+        .result { margin-top: 20px; padding: 16px; border-radius: 8px; display: none; }
+        .danger { background: #7f1d1d; border: 1px solid #f87171; }
+        .success { background: #14532d; border: 1px solid #4ade80; }
+        .output-key { font-family: monospace; background: #0f172a; padding: 8px; display: block; margin-top: 8px; word-break: break-all; border: 1px solid #475569; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Password Integrity Guard</h2>
+    <p>Check if your password is leaked and generate cryptographic alternatives.</p>
+    
+    <label for="passwordInput">Enter Password to Test:</label>
+    <input type="password" id="passwordInput" placeholder="Type a password..." oninput="updateStrengthMeter()">
+    
+    <!-- Visual Strength Meter Component -->
+    <div class="meter-container">
+        <div class="meter-label">
+            <span>Visual Complexity:</span>
+            <span id="strengthText">Empty</span>
+        </div>
+        <div class="meter-bar-bg">
+            <div id="meterFill" class="meter-bar-fill"></div>
+        </div>
+    </div>
+
+    <button onclick="evaluatePassword()">Analyze & Shield</button>
+
+    <div id="resultBox" class="result">
+        <div id="statusMessage"></div>
+        <div id="generatorSection" style="margin-top: 12px; display: none;">
+            <strong>Generated 44-Char Crypto Key:</strong>
+            <span id="cryptoKey" class="output-key"></span>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
