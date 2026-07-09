@@ -105,21 +105,6 @@ function updateStrengthMeter() {
     }
 }
 
-async function sha1(text) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-}
-
-async function generateSecureKey() {
-    const randomBytes = new Uint8Array(32);
-    window.crypto.getRandomValues(randomBytes);
-    const base64String = btoa(String.fromCharCode(...randomBytes));
-    return base64String;
-}
-
 async function evaluatePassword() {
     const password = document.getElementById('passwordInput').value;
     const resultBox = document.getElementById('resultBox');
@@ -129,20 +114,23 @@ async function evaluatePassword() {
 
     if (!password) return;
 
+    // Show the loading status screen
     resultBox.style.display = "block";
     statusMessage.innerHTML = "Checking breach database...";
     generatorSection.style.display = "none";
 
     let isLong = password.length >= 16;
-    let isSafe = password.length >= 16 && score >= 8.5;
     let localWarning = isLong ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
+    
+    // Default to true, we will disprove safety during the checks
+    let isSafe = true;
 
     try {
         const fullHash = await sha1(password);
         const prefix = fullHash.substring(0, 5);
         const suffix = fullHash.substring(5);
 
-        const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+        const response = await fetch(`https://pwnedpasswords.com{prefix}`);
         if (!response.ok) throw new Error("API network error");
         const textData = await response.text();
 
@@ -158,16 +146,30 @@ async function evaluatePassword() {
         }
 
         if (breachCount > 0) {
+            isSafe = false;
             resultBox.className = "result danger";
             statusMessage.innerHTML = `${localWarning}<p> <strong>Breached!</strong> This password was breached ${breachCount.toLocaleString()} times in data leaks!</p>`;
+        } 
+        else if (password.length < 16 || score < 8.5) {
             isSafe = false;
-        } else if (!isSafe) {
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure!</strong> Not secure enough.</p>`;
-        } else {
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure!</strong> This password is not secure enough.</p>`;
+        } 
+        else if (password.length >= 16 || score > 11.5) {
+            isSafe = true;
             resultBox.className = "result success";
-            statusMessage.innerHTML = "<p> <strong>Nice!</strong> Your password is secure and not detected in any breaches.</p>";
-        }
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Nice!</strong> This password is secure.</p>`;
+        } 
+        else if (password.length >= 32 || score >= 16) {
+            isSafe = true;
+            resultBox.className = "result success";
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Dang!</strong> This password is almost.</p>`;
+        } 
+        else if (password.length >= 16 || score > 8.5) {
+            isSafe = true;
+            resultBox.className = "result success";
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Good.</strong> This password is decently secure.</p>`;
+        } 
 
         if (!isSafe) {
             const secureAlternative = await generateSecureKey();
@@ -177,7 +179,7 @@ async function evaluatePassword() {
 
     } catch (error) {
         resultBox.className = "result danger";
-        statusMessage.innerHTML = "Error communicating with the free verification API.";
+        statusMessage.innerHTML = "Error communicating with the verification API.";
         console.error(error);
     }
 }
