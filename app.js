@@ -1,4 +1,3 @@
-// 1. Live Visual Strength Meter Logic (Triggers instantly on user input)
 function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
@@ -13,38 +12,42 @@ function updateStrengthMeter() {
 
     let score = 0;
     
-    // Add points based on variety of character types (entropy)
-    if (/[a-z]/.test(password)) score++; // Has lowercase
-    if (/[A-Z]/.test(password)) score++; // Has uppercase
-    if (/[0-9]/.test(password)) score++; // Has digits
-    if (/[^A-Za-z0-9]/.test(password)) score++; // Has special symbols
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
     
-    // Add points for length thresholds
     if (password.length >= 8) score++;
     if (password.length >= 12) score++;
     if (password.length >= 16) score++;
+    if (password.length >= 20) score++;
 
-    // Calculate width percentage (Max possible points is 7)
+    
     const percentage = Math.min((score / 7) * 100, 100);
     meterFill.style.width = `${percentage}%`;
 
-    // Map scores to specific UI colors and text indicators
+    
     if (score <= 2) {
-        strengthText.innerText = "Very Weak ❌";
-        meterFill.style.backgroundColor = "#ef4444"; // Red
+        strengthText.innerText = "Very Weak";
+        meterFill.style.backgroundColor = "#ef4444";
         strengthText.style.color = "#ef4444";
     } else if (score <= 4) {
-        strengthText.innerText = "Weak ⚠️";
-        meterFill.style.backgroundColor = "#f97316"; // Orange
+        strengthText.innerText = "Weak";
+        meterFill.style.backgroundColor = "#f97316";
         strengthText.style.color = "#f97316";
     } else if (score <= 5) {
-        strengthText.innerText = "Moderate 🛡️";
-        meterFill.style.backgroundColor = "#eab308"; // Yellow
+        strengthText.innerText = "Slightly Secure";
+        meterFill.style.backgroundColor = "#eab308";
         strengthText.style.color = "#eab308";
-    } else {
-        strengthText.innerText = "Strong 💪";
-        meterFill.style.backgroundColor = "#22c55e"; // Green
+    } else if (score <= 7) {
+        strengthText.innerText = "Secure";
+        meterFill.style.backgroundColor = "#22c55e";
         strengthText.style.color = "#22c55e";
+    } else {
+        strengthText.innerText = "Highly Secure";
+        meterFill.style.backgroundColor = "#1f75ff";
+        strengthText.style.color = "#1f75ff";
     }
 }
 
@@ -84,7 +87,7 @@ async function evaluatePassword() {
     generatorSection.style.display = "none";
 
     let isSafe = password.length >= 12;
-    let localWarning = isSafe ? "" : "<p>❌ <strong>Too Short:</strong> Passwords must be 12+ characters.</p>";
+    let localWarning = isSafe ? "" : "<p> <strong>Too Short:</strong> Passwords must be 12+ characters.</p>";
 
     try {
         const fullHash = await sha1(password);
@@ -108,14 +111,14 @@ async function evaluatePassword() {
 
         if (breachCount > 0) {
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p>❌ <strong>Breached:</strong> This password was exposed ${breachCount.toLocaleString()} times in data leaks!</p>`;
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Breached</strong> This password was breached ${breachCount.toLocaleString()} times in data leaks!</p>`;
             isSafe = false;
         } else if (!isSafe) {
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p>✅ <strong>Breach Check:</strong> Clear. No leaks found.</p>`;
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure</strong> Clear. No leaks found.</p>`;
         } else {
             resultBox.className = "result success";
-            statusMessage.innerHTML = "<p>🎉 <strong>Excellent:</strong> Your password is safe and meets structural lengths!</p>";
+            statusMessage.innerHTML = "<p> <strong>Nice</strong> Your password is safe and meets structural lengths!</p>";
         }
 
         if (!isSafe) {
@@ -126,7 +129,7 @@ async function evaluatePassword() {
 
     } catch (error) {
         resultBox.className = "result danger";
-        statusMessage.innerHTML = "⚠️ Error communicating with the free verification API.";
+        statusMessage.innerHTML = "Error communicating with the free verification API.";
         console.error(error);
     }
 }
