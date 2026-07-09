@@ -1,3 +1,4 @@
+let score = 0;
 function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
@@ -23,8 +24,6 @@ function updateStrengthMeter() {
         if (checkUnique) { checkUnique.innerHTML = "✗ All Unique"; checkUnique.style.color = "#f87171"; }
         return;
     }
-
-    let score = 0;
 
     if (/[a-z]/.test(password)) { score++; checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; }
     else { checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#f87171"; }
