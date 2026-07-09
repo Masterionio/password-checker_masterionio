@@ -1,15 +1,3 @@
-// 1. Import the modern dictionary-matching engines from jsDelivr
-import { zxcvbn, zxcvbnOptions } from 'https://jsdelivr.net';
-import { adjacencyGraphs } from 'https://jsdelivr.net';
-import { dictionary } from 'https://jsdelivr.net';
-
-// 2. Configure the zxcvbn options with english and universal dictionaries
-zxcvbnOptions.setOptions({
-  dictionary: { ...dictionary },
-  graphs: adjacencyGraphs,
-});
-
-// 3. UI Strength Meter Logic (Triggered on typing input)
 function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
@@ -36,7 +24,7 @@ function updateStrengthMeter() {
         return;
     }
 
-    // Baseline structural rule validation
+    // Structural validations
     if (/[a-z]/.test(password)) { checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; }
     else { checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#f87171"; }
 
@@ -68,10 +56,11 @@ function updateStrengthMeter() {
     else { checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#f87171"; }
 
     // --- DICTIONARY AND HEURISTIC STRENGTH EVALUATION ---
-    const analysis = zxcvbn(password);
-    const score = analysis.score; // Returns an integer from 0 to 4
+    // Using window.zxcvbn to safely tap the global CDN script
+    const analysis = window.zxcvbn(password);
+    const score = analysis.score; // Returns 0, 1, 2, 3, or 4
 
-    // Map zxcvbn's 0-4 score onto your 0% to 100% UI visual progress meter
+    // Map the 0-4 score onto your 0% - 100% visual meter
     const percentage = (score / 4) * 100;
     meterFill.style.width = `${percentage}%`;
 
@@ -98,7 +87,6 @@ function updateStrengthMeter() {
     }
 }
 
-// 4. Utility Functions (SHA1 & Crypto Key Generator)
 async function sha1(text) {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
@@ -113,7 +101,6 @@ async function generateSecureKey() {
     return btoa(String.fromCharCode(...randomBytes));
 }
 
-// 5. Deep Analysis Execution (Triggered when user clicks "Analyze")
 async function evaluatePassword() {
     const password = document.getElementById('passwordInput').value;
     const resultBox = document.getElementById('resultBox');
@@ -130,16 +117,16 @@ async function evaluatePassword() {
     let isSafe = password.length >= 16;
     let localWarning = isSafe ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
 
-    // Intercept with an offline dictionary/pattern feedback evaluation first
-    const analysis = zxcvbn(password);
+    // Intercept using local dictionary analysis
+    const analysis = window.zxcvbn(password);
     if (analysis.score <= 1 && analysis.feedback.warning) {
         resultBox.className = "result danger";
-        statusMessage.innerHTML = `${localWarning}<p><strong>Exploitable Word!</strong> ${analysis.feedback.warning}. This pattern is found in dictionary matching tools.</p>`;
+        statusMessage.innerHTML = `${localWarning}<p><strong>Exploitable Word!</strong> ${analysis.feedback.warning}. This pattern is easily guessed by dictionary matching tools.</p>`;
         
         const secureAlternative = await generateSecureKey();
         cryptoKey.innerText = secureAlternative;
         generatorSection.style.display = "block";
-        return; // Halt process early to avoid unnecessary network fetch
+        return; 
     }
 
     try {
@@ -186,12 +173,3 @@ async function evaluatePassword() {
         console.error(error);
     }
 }
-
-// 6. Connect module logic seamlessly to the DOM elements (Bypasses old HTML inline handlers)
-document.addEventListener("DOMContentLoaded", () => {
-    const passwordInput = document.getElementById('passwordInput');
-    const analyzeBtn = document.querySelector('button');
-
-    if (passwordInput) passwordInput.addEventListener('input', updateStrengthMeter);
-    if (analyzeBtn) analyzeBtn.addEventListener('click', evaluatePassword);
-});
