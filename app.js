@@ -76,7 +76,7 @@ function updateStrengthMeter() {
     if (password.length >= 16) { checkLen.innerHTML = "✓ Min Length (16+ chars)"; checkLen.style.color = "#4ade80"; }
     else { checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#f87171"; }
 
-    const percentage = Math.min((score / 17) * 100, 100);
+    const percentage = Math.min((score / 16) * 100, 100);
     meterFill.style.width = `${percentage}%`;
 
     if (score <= 3) {
