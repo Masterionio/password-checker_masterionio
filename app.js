@@ -2,56 +2,88 @@ function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
     const strengthText = document.getElementById('strengthText');
+
+    
+    const checkLower = document.getElementById('checkLower');
+    const checkUpper = document.getElementById('checkUpper');
+    const checkNum = document.getElementById('checkNum');
+    const checkSym = document.getElementById('checkSym');
+    const checkLen = document.getElementById('checkLen');
     
     if (!password) {
         meterFill.style.width = "0%";
         strengthText.innerText = "Empty";
         strengthText.style.color = "#94a3b8";
+        
+        
+        checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#94a3b8";
+        checkUpper.innerHTML = "✗ Uppercase (A-Z)"; checkUpper.style.color = "#94a3b8";
+        checkNum.innerHTML = "✗ Number (0-9)"; checkNum.style.color = "#94a3b8";
+        checkSym.innerHTML = "✗ Symbol (!@#$)"; checkSym.style.color = "#94a3b8";
+        checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#94a3b8";
         return;
     }
 
     let score = 0;
     
-    if (/[a-z]/.test(password)) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+    
+    if (/[a-z]/.test(password)) { score++; checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; } 
+    else { checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#94a3b8"; }
+
+    if (/[A-Z]/.test(password)) { score++; checkUpper.innerHTML = "✓ Uppercase (A-Z)"; checkUpper.style.color = "#4ade80"; } 
+    else { checkUpper.innerHTML = "✗ Uppercase (A-Z)"; checkUpper.style.color = "#94a3b8"; }
+
+    if (/[0-9]/.test(password)) { score++; checkNum.innerHTML = "✓ Number (0-9)"; checkNum.style.color = "#4ade80"; } 
+    else { checkNum.innerHTML = "✗ Number (0-9)"; checkNum.style.color = "#94a3b8"; }
+
+    if (/[^A-Za-z0-9]/.test(password)) { score++; checkSym.innerHTML = "✓ Symbol (!@#$)"; checkSym.style.color = "#4ade80"; } 
+    else { checkSym.innerHTML = "✗ Symbol (!@#$)"; checkSym.style.color = "#94a3b8"; }
 
     
     if (password.length >= 8) score++;
     if (password.length >= 12) score++;
     if (password.length >= 16) score++;
     if (password.length >= 20) score++;
+    if (password.length >= 24) score += 1.5;
+    if (password.length >= 28) score += 1.5;
+    if (password.length >= 32) score += 2;
+    if (password.length >= 36) score += 2;
 
     
-    const percentage = Math.min((score / 7) * 100, 100);
+    if (password.length >= 16) { checkLen.innerHTML = "✓ Min Length (16+ chars)"; checkLen.style.color = "#4ade80"; } 
+    else { checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#f87171"; }
+
+    
+    const percentage = Math.min((score / 15) * 100, 100);
     meterFill.style.width = `${percentage}%`;
-
     
-    if (score <= 2) {
+    if (score <= 3) {
         strengthText.innerText = "Very Weak";
         meterFill.style.backgroundColor = "#ef4444";
         strengthText.style.color = "#ef4444";
-    } else if (score <= 4) {
+    } else if (score <= 6) {
         strengthText.innerText = "Weak";
         meterFill.style.backgroundColor = "#f97316";
         strengthText.style.color = "#f97316";
-    } else if (score <= 5) {
+    } else if (score <= 8) {
         strengthText.innerText = "Slightly Secure";
         meterFill.style.backgroundColor = "#eab308";
         strengthText.style.color = "#eab308";
-    } else if (score <= 7) {
+    } else if (score <= 11) {
         strengthText.innerText = "Secure";
         meterFill.style.backgroundColor = "#22c55e";
         strengthText.style.color = "#22c55e";
-    } else {
+    } else if (score <= 14) {
         strengthText.innerText = "Highly Secure";
         meterFill.style.backgroundColor = "#1f75ff";
         strengthText.style.color = "#1f75ff";
+    } else {
+        strengthText.innerText = "Nearly Uncrackable";
+        meterFill.style.backgroundColor = "#6951f0";
+        strengthText.style.color = "#6951f0";
     }
 }
 
-// 2. Helper function to hash text using SHA-1 (Required for HIBP API)
 async function sha1(text) {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
@@ -60,19 +92,18 @@ async function sha1(text) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
-// 3. Browser-native Cryptographic Generator (Alternative to Argon2)
 async function generateSecureKey() {
     const randomBytes = new Uint8Array(32);
     window.crypto.getRandomValues(randomBytes);
 
-    const hashBuffer = await crypto.subtle.digest('SHA-384', randomBytes);
+    
+    const hashBuffer = await crypto.subtle.digest('SHA-512', randomBytes);
     const raw256BitData = new Uint8Array(hashBuffer).slice(0, 32);
 
     const base64String = btoa(String.fromCharCode(...raw256BitData));
     return base64String;
 }
 
-// 4. Verification Workflow (Triggers on button click)
 async function evaluatePassword() {
     const password = document.getElementById('passwordInput').value;
     const resultBox = document.getElementById('resultBox');
@@ -86,15 +117,15 @@ async function evaluatePassword() {
     statusMessage.innerHTML = "Checking breach database...";
     generatorSection.style.display = "none";
 
-    let isSafe = password.length >= 12;
-    let localWarning = isSafe ? "" : "<p> <strong>Too Short:</strong> Passwords must be 12+ characters.</p>";
+    let isSafe = password.length >= 16;
+    let localWarning = isSafe ? "" : "<p> <strong>Too Short.</strong> Passwords should always be 16+ characters.</p>";
 
     try {
         const fullHash = await sha1(password);
         const prefix = fullHash.substring(0, 5);
         const suffix = fullHash.substring(5);
 
-        const response = await fetch(`https://pwnedpasswords.com{prefix}`);
+        const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
         if (!response.ok) throw new Error("API network error");
         const textData = await response.text();
 
