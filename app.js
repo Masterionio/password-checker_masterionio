@@ -1,4 +1,5 @@
 let score = 0;
+
 function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
@@ -12,6 +13,7 @@ function updateStrengthMeter() {
     const checkUnique = document.getElementById('checkUnique');
 
     if (!password) {
+        score = 0; 
         meterFill.style.width = "0%";
         strengthText.innerText = "Empty";
         strengthText.style.color = "#94a3b8";
@@ -24,6 +26,8 @@ function updateStrengthMeter() {
         if (checkUnique) { checkUnique.innerHTML = "✗ All Unique"; checkUnique.style.color = "#f87171"; }
         return;
     }
+
+    score = 0;
 
     if (/[a-z]/.test(password)) { score++; checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; }
     else { checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#f87171"; }
@@ -54,23 +58,39 @@ function updateStrengthMeter() {
             }
         }
     }
-
-    if (password.length >= 6) score += 0.5;
-    if (password.length >= 8) score += 0.5;
-    if (password.length >= 10) score += 0.5;
-    if (password.length >= 12) score += 0.5;
-    if (password.length >= 14) score += 0.5;
-    if (password.length >= 16) score += 0.5;
-    if (password.length >= 18) score += 0.5;
-    if (password.length >= 20) score += 0.5;
-    if (password.length >= 22) score += 0.5;
-    if (password.length >= 24) score += 0.5;
-    if (password.length >= 26) score += 0.5;
-    if (password.length >= 28) score += 0.5;
-    if (password.length >= 30) score += 1;
-    if (password.length >= 32) score += 1;
-    if (password.length >= 34) score += 1.5;
-    if (password.length >= 36) score += 1.5;
+    if (password.length >= 36) {
+        score += 11; 
+    } else if (password.length >= 34) {
+        score += 9.5;
+    } else if (password.length >= 32) {
+        score += 8;
+    } else if (password.length >= 30) {
+        score += 7;
+    } else if (password.length >= 28) {
+        score += 6;
+    } else if (password.length >= 26) {
+        score += 5.5;
+    } else if (password.length >= 24) {
+        score += 5;
+    } else if (password.length >= 22) {
+        score += 4.5;
+    } else if (password.length >= 20) {
+        score += 4;
+    } else if (password.length >= 18) {
+        score += 3.5;
+    } else if (password.length >= 16) {
+        score += 3;
+    } else if (password.length >= 14) {
+        score += 2.5;
+    } else if (password.length >= 12) {
+        score += 2;
+    } else if (password.length >= 10) {
+        score += 1.5;
+    } else if (password.length >= 8) {
+        score += 1;
+    } else if (password.length >= 6) {
+        score += 0.5;
+    }
 
     if (password.length >= 16) { checkLen.innerHTML = "✓ Min Length (16+ chars)"; checkLen.style.color = "#4ade80"; }
     else { checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#f87171"; }
@@ -105,6 +125,21 @@ function updateStrengthMeter() {
     }
 }
 
+async function sha1(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+async function generateSecureKey() {
+    const randomBytes = new Uint8Array(32);
+    window.crypto.getRandomValues(randomBytes);
+    const base64String = btoa(String.fromCharCode(...randomBytes));
+    return base64String;
+}
+
 async function evaluatePassword() {
     const password = document.getElementById('passwordInput').value;
     const resultBox = document.getElementById('resultBox');
@@ -114,7 +149,6 @@ async function evaluatePassword() {
 
     if (!password) return;
 
-    // Show the loading status screen
     resultBox.style.display = "block";
     statusMessage.innerHTML = "Checking breach database...";
     generatorSection.style.display = "none";
@@ -122,7 +156,6 @@ async function evaluatePassword() {
     let isLong = password.length >= 16;
     let localWarning = isLong ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
     
-    // Default to true, we will disprove safety during the checks
     let isSafe = true;
 
     try {
@@ -130,7 +163,7 @@ async function evaluatePassword() {
         const prefix = fullHash.substring(0, 5);
         const suffix = fullHash.substring(5);
 
-        const response = await fetch(`https://pwnedpasswords.com{prefix}`);
+        const response = await fetch(`https://api.pwnedpasswords.com${prefix}`);
         if (!response.ok) throw new Error("API network error");
         const textData = await response.text();
 
@@ -155,17 +188,17 @@ async function evaluatePassword() {
             resultBox.className = "result danger";
             statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure!</strong> This password is not secure enough.</p>`;
         } 
-        else if (password.length >= 16 || score > 11.5) {
+        else if (password.length >= 32 && score >= 16) { 
             isSafe = true;
             resultBox.className = "result success";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Nice!</strong> This password is secure.</p>`;
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Dang!</strong> This password is almost unbreakable.</p>`;
         } 
-        else if (password.length >= 32 || score >= 16) {
+        else if (password.length >= 24 && score > 11.5) { 
             isSafe = true;
             resultBox.className = "result success";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Dang!</strong> This password is almost.</p>`;
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Nice!</strong> This password is highly secure.</p>`;
         } 
-        else if (password.length >= 16 || score > 8.5) {
+        else { 
             isSafe = true;
             resultBox.className = "result success";
             statusMessage.innerHTML = `${localWarning}<p> <strong>Good.</strong> This password is decently secure.</p>`;
