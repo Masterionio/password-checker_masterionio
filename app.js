@@ -172,8 +172,8 @@ async function evaluatePassword() {
     statusMessage.innerHTML = "Checking breach database...";
     generatorSection.style.display = "none";
 
-    let isLong = password.length < 16;
-    let localWarning = isLong ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
+    let isShort = password.length < 16;
+    let localWarning = isShort ? "<p><strong>Too Short!</strong> Passwords should always be 16+ characters.</p>" : "";
 
     let isSafe = true;
 
@@ -200,22 +200,20 @@ async function evaluatePassword() {
         if (breachCount > 0) {
             isSafe = false;
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Breached!</strong> This password was breached ${breachCount.toLocaleString()} times in data leaks! It may also be a common password.</p>`;
-        else if (score < 8.5) {
+            statusMessage.innerHTML = `${localWarning}<p><strong>Breached!</strong> This password was breached ${breachCount.toLocaleString()} times in data leaks! It may also be a common password.</p>`;
+        } else if (isShort) {
+            isSafe = false;
             resultBox.className = "result danger";
-            statusMessage.innerHTML = "<p> <strong>Insecure!</strong> This password is not secure enough.</p>";
-        }
-        else if (score >= 8.5) {
+            statusMessage.innerHTML = `${localWarning}<p><strong>Insecure!</strong> This password is too short.</p>`;
+        } else if (password.length >= 32) {
             resultBox.className = "result success";
-            statusMessage.innerHTML = "<p> <strong>Good.</strong> This password is decently secure.</p>";
-        }
-        else if (score >= 11.5 && password.length >= 24) {
+            statusMessage.innerHTML = "<p><strong>Dang!</strong> This password is almost unbreakable.</p>";
+        } else if (password.length >= 24) {
             resultBox.className = "result success";
-            statusMessage.innerHTML = "<p> <strong>Nice!</strong> This password is secure.</p>";
-        }
-        else {
+            statusMessage.innerHTML = "<p><strong>Nice!</strong> This password is highly secure.</p>";
+        } else {
             resultBox.className = "result success";
-            statusMessage.innerHTML = "<p> <strong>Good.</strong> This password is decently secure.</p>";
+            statusMessage.innerHTML = "<p><strong>Good.</strong> This password is decently secure.</p>";
         }
 
         if (!isSafe) {
