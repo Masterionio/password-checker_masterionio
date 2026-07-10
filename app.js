@@ -2,6 +2,8 @@ function updateStrengthMeter() {
     const password = document.getElementById('passwordInput').value;
     const meterFill = document.getElementById('meterFill');
     const strengthText = document.getElementById('strengthText');
+    const charCount = document.getElementById('charCount');
+    const meterScore = document.getElementById('meterScore');
 
     const checkLower = document.getElementById('checkLower');
     const checkUpper = document.getElementById('checkUpper');
@@ -10,13 +12,15 @@ function updateStrengthMeter() {
     const checkLen = document.getElementById('checkLen');
     const checkUnique = document.getElementById('checkUnique');
 
+    charCount.innerText = password.length;
+
     let score = 0;
 
     if (!password) {
-        score = 0; 
         meterFill.style.width = "0%";
         strengthText.innerText = "Empty";
         strengthText.style.color = "#94a3b8";
+        meterScore.innerText = "0/16";
 
         checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#f87171";
         checkUpper.innerHTML = "✗ Uppercase (A-Z)"; checkUpper.style.color = "#f87171";
@@ -26,8 +30,6 @@ function updateStrengthMeter() {
         if (checkUnique) { checkUnique.innerHTML = "✗ All Unique"; checkUnique.style.color = "#f87171"; }
         return;
     }
-
-    score = 0;
 
     if (/[a-z]/.test(password)) { score++; checkLower.innerHTML = "✓ Lowercase (a-z)"; checkLower.style.color = "#4ade80"; }
     else { checkLower.innerHTML = "✗ Lowercase (a-z)"; checkLower.style.color = "#f87171"; }
@@ -58,8 +60,9 @@ function updateStrengthMeter() {
             }
         }
     }
+
     if (password.length >= 36) {
-        score += 11; 
+        score += 11;
     } else if (password.length >= 34) {
         score += 9.5;
     } else if (password.length >= 32) {
@@ -95,6 +98,9 @@ function updateStrengthMeter() {
     if (password.length >= 16) { checkLen.innerHTML = "✓ Min Length (16+ chars)"; checkLen.style.color = "#4ade80"; }
     else { checkLen.innerHTML = "✗ Min Length (16+ chars)"; checkLen.style.color = "#f87171"; }
 
+    const displayScore = Math.round(score * 10) / 10;
+    meterScore.innerText = `${displayScore}/16`;
+
     const percentage = Math.min((score / 16) * 100, 100);
     meterFill.style.width = `${percentage}%`;
 
@@ -122,6 +128,19 @@ function updateStrengthMeter() {
         strengthText.innerText = "Nearly Uncrackable";
         meterFill.style.backgroundColor = "#6951f0";
         strengthText.style.color = "#6951f0";
+    }
+}
+
+function togglePasswordVisibility() {
+    const input = document.getElementById('passwordInput');
+    const btn = document.getElementById('togglePasswordBtn');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '◉';
+    } else {
+        input.type = 'password';
+        btn.innerHTML = '◎';
     }
 }
 
@@ -153,9 +172,9 @@ async function evaluatePassword() {
     statusMessage.innerHTML = "Checking breach database...";
     generatorSection.style.display = "none";
 
-    let isLong = password.length >= 16;
+    let isLong = password.length < 16;
     let localWarning = isLong ? "" : "<p> <strong>Too Short!</strong> Passwords should always be 16+ characters.</p>";
-    
+
     let isSafe = true;
 
     try {
@@ -181,28 +200,23 @@ async function evaluatePassword() {
         if (breachCount > 0) {
             isSafe = false;
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Breached!</strong> This password was breached ${breachCount.toLocaleString()} times in data leaks!</p>`;
-        } 
-        else if (password.length < 16 || score < 8.5) {
-            isSafe = false;
+            statusMessage.innerHTML = `${localWarning}<p> <strong>Breached!</strong> This password was breached ${breachCount.toLocaleString()} times in data leaks! It may also be a common password.</p>`;
+        else if (score < 8.5) {
             resultBox.className = "result danger";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Insecure!</strong> This password is not secure enough.</p>`;
-        } 
-        else if (password.length >= 32 && score >= 16) { 
-            isSafe = true;
+            statusMessage.innerHTML = "<p> <strong>Insecure!</strong> This password is not secure enough.</p>";
+        }
+        else if (score >= 8.5) {
             resultBox.className = "result success";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Dang!</strong> This password is almost unbreakable.</p>`;
-        } 
-        else if (password.length >= 24 && score > 11.5) { 
-            isSafe = true;
+            statusMessage.innerHTML = "<p> <strong>Good.</strong> This password is decently secure.</p>";
+        }
+        else if (score >= 11.5 && password.length >= 24) {
             resultBox.className = "result success";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Nice!</strong> This password is highly secure.</p>`;
-        } 
-        else { 
-            isSafe = true;
+            statusMessage.innerHTML = "<p> <strong>Nice!</strong> This password is secure.</p>";
+        }
+        else {
             resultBox.className = "result success";
-            statusMessage.innerHTML = `${localWarning}<p> <strong>Good.</strong> This password is decently secure.</p>`;
-        } 
+            statusMessage.innerHTML = "<p> <strong>Good.</strong> This password is decently secure.</p>";
+        }
 
         if (!isSafe) {
             const secureAlternative = await generateSecureKey();
