@@ -7,17 +7,48 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 600px; margin: 40px auto; padding: 20px; }
         .card { background: #1e293b; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: 1px solid #475569; box-sizing: border-box; font-size: 16px; }
-        input { background: #334155; color: white; }
-        button { background: #2563eb; color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 16px; }
-        button:hover { background: #1d4ed8; }
-        
-        /* Progress Bar Styling */
-        .meter-container { margin-top: 12px; }
+
+        /* Character counter above input */
+        .char-counter { text-align: right; font-size: 13px; color: #94a3b8; margin-bottom: 2px; }
+
+        /* Input wrapper for eye toggle */
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper input { width: 100%; padding: 12px 42px 12px 12px; margin-top: 0; border-radius: 6px; border: 1px solid #475569; box-sizing: border-box; font-size: 16px; background: #334155; color: white; }
+        .toggle-password {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            width: auto;
+            line-height: 1;
+        }
+        .toggle-password:hover { color: #f8fafc; }
+
+        button { width: 100%; padding: 12px; margin-top: 16px; border-radius: 6px; border: none; font-size: 16px; }
+        button.analyze-btn { background: #2563eb; color: white; font-weight: bold; cursor: pointer; }
+        button.analyze-btn:hover { background: #1d4ed8; }
+
+        /* Score bar */
+        .meter-container { margin-top: 12px; position: relative; }
         .meter-label { font-size: 14px; font-weight: bold; color: #94a3b8; display: flex; justify-content: space-between; }
-        .meter-bar-bg { background: #334155; height: 8px; width: 100%; border-radius: 4px; margin-top: 6px; overflow: hidden; }
-        .meter-bar-fill { height: 100%; width: 0%; background: #ef4444; transition: width 0.3s ease, background-color 0.3s ease; }
-        
+        .meter-bar-bg { background: #334155; height: 22px; width: 100%; border-radius: 4px; margin-top: 6px; overflow: hidden; position: relative; }
+        .meter-bar-fill { height: 100%; width: 0%; background: #ef4444; transition: width 0.3s ease, background-color 0.3s ease; border-radius: 4px; }
+        .meter-score {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: #f8fafc;
+            pointer-events: none;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
         .result { margin-top: 20px; padding: 16px; border-radius: 8px; display: none; }
         .danger { background: #7f1d1d; border: 1px solid #f87171; }
         .success { background: #14532d; border: 1px solid #4ade80; }
@@ -29,12 +60,17 @@
 <div class="card">
     <h2>Password Checker</h2>
     <p>Check if your password is breached and generate cryptographic alternatives.</p>
-    
-    
-    <label for="passwordInput">Enter Password to Test:</label>
-    <input type="password" id="passwordInput" placeholder="Type a password..." oninput="updateStrengthMeter()">
-    
-    
+
+    <!-- Character Counter -->
+    <div class="char-counter"><span id="charCount">0</span> characters</div>
+
+    <!-- Input with Eye Toggle -->
+    <div class="input-wrapper">
+        <input type="password" id="passwordInput" placeholder="Type a password..." oninput="updateStrengthMeter()">
+        <button type="button" class="toggle-password" id="togglePasswordBtn" onclick="togglePasswordVisibility()">◎</button>
+    </div>
+
+    <!-- Score Bar -->
     <div class="meter-container">
         <div class="meter-label">
             <span>Strength Level:</span>
@@ -42,31 +78,31 @@
         </div>
         <div class="meter-bar-bg">
             <div id="meterFill" class="meter-bar-fill"></div>
+            <div id="meterScore" class="meter-score">0/16</div>
         </div>
     </div>
 
-    
+    <!-- Checklist -->
     <div id="checklistContainer" style="margin-top: 14px; font-size: 14px; color: #94a3b8; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
         <div id="checkLower">✗ Lowercase (a-z)</div>
         <div id="checkUpper">✗ Uppercase (A-Z)</div>
         <div id="checkNum">✗ Number (0-9)</div>
         <div id="checkSym">✗ Symbol (!@#$)</div>
-        <div id="checkLen" style="grid-column: span 2;">✗ Min Length (16+ chars)</div>
-        <div id="checkUnique" style="grid-column: span 2;">✗ All Unique</div>
+        <div id="checkLen">✗ Min Length (16+ chars)</div>
+        <div id="checkUnique">✗ All Unique</div>
     </div>
 
-    
-    <button onclick="evaluatePassword()">Analyze</button>
+    <button class="analyze-btn" onclick="evaluatePassword()">Analyze</button>
 
-    
     <div id="resultBox" class="result">
         <div id="statusMessage"></div>
         <div id="generatorSection" style="margin-top: 12px; display: none;">
-            <strong>Generated 44-Character Crypto Key:</strong>
+            <strong>Generated 44-Character Cryptographic Key:</strong>
             <span id="cryptoKey" class="output-key"></span>
         </div>
     </div>
 </div>
+
 <script src="app.js"></script>
 </body>
 </html>
